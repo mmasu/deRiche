@@ -1,0 +1,21 @@
+
+//double click on any textbox/textarea and directly write in the following
+//change 'textmain' to your textbox name
+//create a label named 'texttotal' or name your own. this is where the number of words entered will display
+
+private void textmain_TextChanged(object sender, EventArgs e)
+        {
+            int total;
+            string[] words; 
+
+            int count = 0;
+            words=textmain.Text.Split(new string[] { "\r\n", "\n"," " }, StringSplitOptions.None);
+            
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i] == "") { count++; }
+            }
+            total = words.Length - count;
+            texttotal.Text = total.ToString();
+            
+        }
