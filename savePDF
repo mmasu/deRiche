@@ -1,0 +1,82 @@
+ //********************************************
+        //  takes screenshot of panels 
+        //  for later to be saved on a pdf document
+        //********************************************
+        public static void TakeScreenshot(System.Windows.Forms.Panel panel, string filePath)
+        {
+            if (panel == null)
+                throw new ArgumentNullException("panel");
+
+            if (filePath == null)
+                throw new ArgumentNullException("filePath");
+
+            // get parent form (may not be a direct parent)
+            Form form = panel.FindForm();
+            if (form == null)
+                throw new ArgumentException(null, "panel");
+
+            // remember form position
+            int w = form.Width;
+            int h = form.Height;
+            int l = form.Left;
+            int t = form.Top;
+
+            // get panel virtual size
+            System.Drawing.Rectangle display = panel.DisplayRectangle;
+
+            // get panel position relative to parent form
+            Point panelLocation = panel.PointToScreen(panel.Location);
+            Size panelPosition = new Size(panelLocation.X - form.Location.X, panelLocation.Y - form.Location.Y);
+
+            // resize form and move it outside the screen
+            int neededWidth = panelPosition.Width + display.Width;
+            int neededHeight = panelPosition.Height + display.Height;
+            form.SetBounds(0, -neededHeight, neededWidth, neededHeight, BoundsSpecified.All);
+
+            // resize panel (useless if panel has a dock)
+            int pw = panel.Width;
+            int ph = panel.Height;
+            panel.SetBounds(0, 0, display.Width, display.Height, BoundsSpecified.Size);
+
+            // render the panel on a bitmap
+            try
+            {
+                Bitmap bmp = new Bitmap(display.Width, display.Height);
+                panel.DrawToBitmap(bmp, display);
+                bmp.Save(filePath);
+            }
+            finally
+            {
+                // restore
+                panel.SetBounds(0, 0, pw, ph, BoundsSpecified.Size);
+                form.SetBounds(l, t, w, h, BoundsSpecified.All);
+            }
+        }
+
+
+
+
+        private void saveFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+           
+            TakeScreenshot(panel1, "C:\\DeRicheImages\\progressNote.bmp");
+            TakeScreenshot(seizurePanel, "C:\\DeRicheImages\\seizurePanel.bmp");
+            TakeScreenshot(adminPanel, "C:\\DeRicheImages\\adminPanel.bmp");
+           
+            //create document instance
+            Document doc = new Document(iTextSharp.text.PageSize.LETTER, 10, 10, 38, 29);
+            PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(saveFileDialog1.FileName, FileMode.Create));
+            doc.Open();
+
+            //retrieves image that was saved 
+            var image1 = iTextSharp.text.Image.GetInstance("C:\\DeRicheImages\\progressNote.bmp");
+            var image2 = iTextSharp.text.Image.GetInstance("C:\\DeRicheImages\\seizurePanel.bmp");
+            var image3 = iTextSharp.text.Image.GetInstance("C:\\DeRicheImages\\adminPanel.bmp");
+       
+            //add images to pdf document
+            doc.Add(image1);
+            doc.Add(image2);
+            doc.Add(image3);
+            doc.Close();
+
+            MessageBox.Show("pdf is saved");
